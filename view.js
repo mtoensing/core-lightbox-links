@@ -27,8 +27,6 @@ document.addEventListener( 'click', ( event ) => {
 	} ) ) {
 		figure.style.setProperty( property, value, 'important' );
 	}
-	image.style.setProperty( 'width', '100%', 'important' );
-	image.style.setProperty( 'height', '100%', 'important' );
 
 	event.preventDefault();
 	image.click();
