@@ -14,11 +14,11 @@ Open ordinary image-file text links with the built-in WordPress Core Image Light
 
 Core Lightbox Links extends the native WordPress image lightbox to text links pointing directly to JPG, JPEG, PNG, GIF, WebP, or AVIF files.
 
-The plugin reuses the Core Image Lightbox and does not bundle another lightbox library. JavaScript detects links directly, including content inserted after the page loads; no PHP content filtering or HTML preprocessing is required.
+The plugin reuses the Core Image Lightbox and does not bundle another lightbox library. PHP identifies image links and renders hidden, genuine Core Image Block triggers. A small JavaScript click handler delegates to those triggers. No private Core store access or second lightbox implementation is used.
 
-Image links that contain an image, links with a download or target attribute, and modified clicks retain their existing behavior. Linked images load on demand.
+Image links that contain an image, links with a download or target attribute, and modified clicks retain their existing behavior. WordPress loads the native image triggers in the page.
 
-**Compatibility note:** WordPress does not currently provide a public interface for opening its Image Lightbox from an arbitrary text link. This plugin bridges to internal Core Image Lightbox state. Future WordPress releases may require updates. Native lightbox resources are loaded on frontend pages even when no text image link is present.
+**Compatibility note:** WordPress does not currently provide a public interface for opening its Image Lightbox from an arbitrary text link. This plugin bridges to internal Core Image Lightbox state. Future WordPress releases may require updates. Image links are processed when post content renders. Dynamically inserted links are not supported. The hidden image triggers may download image files before they are clicked.
 
 == Installation ==
 
