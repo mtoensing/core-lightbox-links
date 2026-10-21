@@ -1,0 +1,31 @@
+name: Checks
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  syntax:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check PHP syntax
+        run: php -l plugin.php
+      - name: Check JavaScript syntax
+        run: |
+          cp view.js /tmp/core-lightbox-links-view.mjs
+          node --check /tmp/core-lightbox-links-view.mjs
+      - name: Check version alignment
+        run: |
+          python3 - <<'PY'
+          import re
+          from pathlib import Path
+          version = re.search(r'(?m)^ \* Version: (\S+)', Path('plugin.php').read_text()).group(1)
+          stable = re.search(r'(?m)^Stable tag: (\S+)', Path('readme.txt').read_text()).group(1)
+          assert version == stable, f'Plugin version {version} does not match stable tag {stable}'
+          PY
