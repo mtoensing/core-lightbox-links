@@ -4,7 +4,7 @@ Tags: lightbox, images, links, gutenberg
 Requires at least: 7.0
 Tested up to: 7.0
 Requires PHP: 7.4
-Stable tag: 0.1.5
+Stable tag: 0.1.6
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -37,6 +37,10 @@ No. It reuses the native Core Image Lightbox.
 It supports direct image URLs as long as the browser can load the image.
 
 == Changelog ==
+
+= 0.1.6 =
+* Preserve intrinsic image proportions in hidden Core triggers, including gallery navigation, without viewport width constraints.
+* Restore keyboard focus to the visible text link after closing the lightbox.
 
 = 0.1.5 =
 * Prevent trigger image sizing from constraining enlarged gallery images.

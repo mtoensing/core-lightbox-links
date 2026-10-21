@@ -1,3 +1,31 @@
+// Core derives the enlarged container's aspect ratio from imageRef.offsetWidth /
+// offsetHeight. Keep every proxy at its intrinsic size, including gallery items
+// reached through navigation rather than a text-link click.
+function sizeTrigger( image ) {
+	if ( ! image.naturalWidth || ! image.naturalHeight ) {
+		return;
+	}
+	const figure = image.closest( 'figure.cll-native-trigger[id]' );
+	figure.style.setProperty( 'width', `${ image.naturalWidth }px`, 'important' );
+	figure.style.setProperty( 'height', `${ image.naturalHeight }px`, 'important' );
+}
+
+document.querySelectorAll( 'figure.cll-native-trigger[id] > img' ).forEach( ( image ) => {
+	if ( image.complete ) {
+		sizeTrigger( image );
+	}
+	image.addEventListener( 'load', () => sizeTrigger( image ) );
+} );
+
+// Core restores focus to its hidden button after closing. Return it to the
+// visible text link instead, including after navigating to another image.
+document.addEventListener( 'focusin', ( event ) => {
+	const figure = event.target.closest?.( 'figure.cll-native-trigger[id]' );
+	if ( figure ) {
+		document.querySelector( `a[data-cll-target="${ figure.id }"]` )?.focus( { preventScroll: true } );
+	}
+} );
+
 // Forward text links to genuine Core Image Block lightbox triggers.
 document.addEventListener( 'click', ( event ) => {
 	const link = event.target.closest?.( 'a[data-cll-target]' );
@@ -15,15 +43,13 @@ document.addEventListener( 'click', ( event ) => {
 		return;
 	}
 
-	// Core animates from the image's rectangle. Place the invisible trigger
-	// over the text link before dispatching its native lightbox click.
+	// Anchor the animation at the link without imposing the link's aspect ratio.
+	sizeTrigger( image );
 	const rect = link.getBoundingClientRect();
 	for ( const [ property, value ] of Object.entries( {
 		position: 'fixed',
 		left: `${ rect.left }px`,
 		top: `${ rect.top }px`,
-		width: `${ Math.max( rect.width, 1 ) }px`,
-		height: `${ Math.max( rect.height, 1 ) }px`,
 	} ) ) {
 		figure.style.setProperty( property, value, 'important' );
 	}
