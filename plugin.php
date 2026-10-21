@@ -2,7 +2,7 @@
 /**
  * Plugin Name: Core Lightbox Links
  * Description: Open image-file text links in the native WordPress image lightbox.
- * Version: 0.1.0
+ * Version: 0.1.1
  * Requires at least: 6.5
  * Requires PHP: 7.4
  * Author: Marc Tönsing
@@ -15,7 +15,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 add_action( 'wp_enqueue_scripts', function () {
-	wp_enqueue_script( 'core-lightbox-links', plugins_url( 'view.js', __FILE__ ), array(), '0.1.0', true );
+	wp_enqueue_script( 'core-lightbox-links', plugins_url( 'view.js', __FILE__ ), array(), '0.1.1', true );
 	wp_enqueue_style( 'wp-block-image' );
 	wp_add_inline_style( 'wp-block-image', '.cll-native-trigger{position:absolute!important;width:1px!important;height:1px!important;overflow:hidden!important;opacity:0!important;pointer-events:none!important}' );
 } );
