@@ -16,6 +16,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 add_action( 'wp_enqueue_scripts', function () {
 	wp_enqueue_script( 'core-lightbox-links', plugins_url( 'view.js', __FILE__ ), array(), '0.1.0', true );
+	wp_enqueue_style( 'wp-block-image' );
 	wp_add_inline_style( 'wp-block-image', '.cll-native-trigger{position:absolute!important;width:1px!important;height:1px!important;overflow:hidden!important;opacity:0!important;pointer-events:none!important}' );
 } );
 
@@ -56,6 +57,5 @@ add_filter( 'the_content', function ( $content ) {
 		return $content;
 	}
 
-	wp_enqueue_style( 'wp-block-image' );
 	return $processor->get_updated_html() . implode( '', $triggers );
 }, 20 );
