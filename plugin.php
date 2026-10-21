@@ -24,7 +24,7 @@ add_action( 'init', function () {
 } );
 
 add_filter( 'the_content', function ( $content ) {
-	if ( is_admin() || ! str_contains( strtolower( $content ), '<a ' ) ) {
+	if ( is_admin() || false === stripos( $content, '<a ' ) ) {
 		return $content;
 	}
 
