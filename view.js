@@ -1,4 +1,4 @@
-// Trigger a real Core Image Block lightbox without accessing its private store.
+// Forward text links to genuine Core Image Block lightbox triggers.
 document.addEventListener( 'click', ( event ) => {
 	const link = event.target.closest?.( 'a[data-cll-target]' );
 	if (
@@ -9,9 +9,27 @@ document.addEventListener( 'click', ( event ) => {
 		return;
 	}
 
-	const image = document.getElementById( link.dataset.cllTarget )?.querySelector( 'img' );
-	if ( image?.complete && image.naturalWidth ) {
-		event.preventDefault();
-		image.click();
+	const figure = document.getElementById( link.dataset.cllTarget );
+	const image = figure?.querySelector( 'img' );
+	if ( ! image?.complete || ! image.naturalWidth ) {
+		return;
 	}
+
+	// Core animates from the image's rectangle. Place the invisible trigger
+	// over the text link before dispatching its native lightbox click.
+	const rect = link.getBoundingClientRect();
+	for ( const [ property, value ] of Object.entries( {
+		position: 'fixed',
+		left: `${ rect.left }px`,
+		top: `${ rect.top }px`,
+		width: `${ Math.max( rect.width, 1 ) }px`,
+		height: `${ Math.max( rect.height, 1 ) }px`,
+	} ) ) {
+		figure.style.setProperty( property, value, 'important' );
+	}
+	image.style.setProperty( 'width', '100%', 'important' );
+	image.style.setProperty( 'height', '100%', 'important' );
+
+	event.preventDefault();
+	image.click();
 } );
