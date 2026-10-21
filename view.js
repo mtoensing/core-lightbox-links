@@ -1,63 +1,100 @@
 /**
- * Connect image-file text links to the existing core/image lightbox store.
+ * Add image-file text links to WordPress's existing core/image lightbox.
  *
- * Core exposes no public API for non-image triggers. This adapter supplies the
- * image reference expected by Core; it does not render a second lightbox.
+ * WordPress has no public non-image trigger API. Keep the small internal state
+ * adapter here, without changing rendered HTML or copying the lightbox UI.
  */
 import { store } from '@wordpress/interactivity';
 
-const { state } = store( 'core/image' );
+const { state, callbacks } = store( 'core/image' );
+let nextId = 0;
 
-document.querySelectorAll( 'a[data-cll-image]' ).forEach( ( link ) => {
-	const id = link.getAttribute( 'data-cll-image' );
-	const metadata = state.metadata?.[ id ];
-	if ( ! metadata ) {
+document.addEventListener( 'click', async ( event ) => {
+	if (
+		event.defaultPrevented ||
+		event.button !== 0 ||
+		event.metaKey ||
+		event.ctrlKey ||
+		event.shiftKey ||
+		event.altKey
+	) {
 		return;
 	}
 
-	const image = new Image();
-	image.src = metadata.uploadedSrc;
-	metadata.buttonRef = link;
+	const link = event.target.closest( 'a[href]' );
+	if (
+		! link ||
+		link.hasAttribute( 'download' ) ||
+		link.hasAttribute( 'target' ) ||
+		link.hasAttribute( 'data-wp-interactive' ) ||
+		link.closest( '.wp-lightbox-container, .wp-lightbox-overlay' ) ||
+		link.querySelector( 'img, picture' )
+	) {
+		return;
+	}
 
-	// Core uses the clicked image geometry for its zoom animation. For text
-	// links, use the anchor rectangle as the starting point.
-	metadata.imageRef = {
-		get complete() {
-			return image.complete && image.naturalWidth > 0;
-		},
-		get naturalWidth() {
-			return image.naturalWidth;
-		},
-		get naturalHeight() {
-			return image.naturalHeight;
-		},
-		get offsetWidth() {
-			return Math.max( link.offsetWidth, 1 );
-		},
-		get offsetHeight() {
-			return Math.max( link.offsetHeight, 1 );
-		},
-		getBoundingClientRect() {
-			return link.getBoundingClientRect();
+	const url = new URL( link.href, document.baseURI );
+	if ( ! /\.(?:jpe?g|png|gif|webp|avif)$/i.test( url.pathname ) ) {
+		return;
+	}
+
+	event.preventDefault();
+
+	// Load on demand rather than downloading every linked image on page load.
+	const image = new Image();
+	image.src = url.href;
+	try {
+		await image.decode();
+	} catch {
+		// Failed images remain accessible as ordinary links.
+		window.location.assign( url.href );
+		return;
+	}
+
+	// Do not interrupt a lightbox already open while the image was loading.
+	if ( state.overlayEnabled ) {
+		return;
+	}
+
+	const id = `cll-${ ++nextId }`;
+	state.metadata ??= {};
+	state.metadata[ id ] = {
+		uploadedSrc: url.href,
+		currentSrc: url.href,
+		lightboxSrcset: false,
+		figureClassNames: 'wp-block-image',
+		figureStyles: '',
+		imgClassNames: '',
+		imgStyles: '',
+		targetWidth: 'none',
+		targetHeight: 'none',
+		scaleAttr: false,
+		alt: link.textContent.trim(),
+		galleryId: null,
+		customAriaLabel: null,
+		navigationButtonType: 'icon',
+		triggerButtonAriaLabel: 'Enlarge',
+		buttonRef: link,
+		imageRef: {
+			complete: true,
+			naturalWidth: image.naturalWidth,
+			naturalHeight: image.naturalHeight,
+			get offsetWidth() {
+				return Math.max( link.offsetWidth, 1 );
+			},
+			get offsetHeight() {
+				return Math.max( link.offsetHeight, 1 );
+			},
+			getBoundingClientRect() {
+				return link.getBoundingClientRect();
+			},
 		},
 	};
-	metadata.currentSrc = metadata.uploadedSrc;
 
-	link.addEventListener( 'click', ( event ) => {
-		if (
-			event.defaultPrevented ||
-			event.button !== 0 ||
-			event.metaKey ||
-			event.ctrlKey ||
-			event.shiftKey ||
-			event.altKey
-		) {
-			return;
-		}
-
-		// Keep native browser navigation when the image cannot be loaded.
-		if ( metadata.imageRef.complete ) {
-			event.preventDefault();
-		}
-	} );
+	state.scrollTopReset = document.documentElement.scrollTop;
+	state.scrollLeftReset = document.documentElement.scrollLeft;
+	state.selectedImageId = id;
+	state.selectedGalleryId = null;
+	state.overlayEnabled = true;
+	callbacks.setOverlayStyles();
 } );
