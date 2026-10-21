@@ -1,28 +1,14 @@
-/**
- * Add image-file text links to WordPress's existing core/image lightbox.
- *
- * WordPress has no public non-image trigger API. Keep the small internal state
- * adapter here, without changing rendered HTML or copying the lightbox UI.
- */
 import { store } from '@wordpress/interactivity';
 
 const { state, callbacks } = store( 'core/image' );
-let nextId = 0;
+let id = 0;
 
 document.addEventListener( 'click', async ( event ) => {
+	const link = event.target.closest?.( 'a[href]' );
 	if (
 		event.defaultPrevented ||
 		event.button !== 0 ||
-		event.metaKey ||
-		event.ctrlKey ||
-		event.shiftKey ||
-		event.altKey
-	) {
-		return;
-	}
-
-	const link = event.target.closest( 'a[href]' );
-	if (
+		event.metaKey || event.ctrlKey || event.shiftKey || event.altKey ||
 		! link ||
 		link.hasAttribute( 'download' ) ||
 		link.hasAttribute( 'target' ) ||
@@ -33,47 +19,33 @@ document.addEventListener( 'click', async ( event ) => {
 		return;
 	}
 
-	const url = new URL( link.href, document.baseURI );
-	if ( ! /\.(?:jpe?g|png|gif|webp|avif)$/i.test( url.pathname ) ) {
+	const url = new URL( link.href );
+	if ( ! /\.(jpe?g|png|gif|webp|avif)$/i.test( url.pathname ) ) {
 		return;
 	}
 
 	event.preventDefault();
 
-	// Load on demand rather than downloading every linked image on page load.
 	const image = new Image();
 	image.src = url.href;
 	try {
 		await image.decode();
 	} catch {
-		// Failed images remain accessible as ordinary links.
 		window.location.assign( url.href );
 		return;
 	}
-
-	// Do not interrupt a lightbox already open while the image was loading.
 	if ( state.overlayEnabled ) {
 		return;
 	}
 
-	const id = `cll-${ ++nextId }`;
+	const imageId = `cll-${ ++id }`;
 	state.metadata ??= {};
-	state.metadata[ id ] = {
+	state.metadata[ imageId ] = {
 		uploadedSrc: url.href,
 		currentSrc: url.href,
-		lightboxSrcset: false,
-		figureClassNames: 'wp-block-image',
-		figureStyles: '',
-		imgClassNames: '',
-		imgStyles: '',
-		targetWidth: 'none',
-		targetHeight: 'none',
-		scaleAttr: false,
 		alt: link.textContent.trim(),
-		galleryId: null,
-		customAriaLabel: null,
+		figureClassNames: 'wp-block-image',
 		navigationButtonType: 'icon',
-		triggerButtonAriaLabel: 'Enlarge',
 		buttonRef: link,
 		imageRef: {
 			complete: true,
@@ -85,15 +57,12 @@ document.addEventListener( 'click', async ( event ) => {
 			get offsetHeight() {
 				return Math.max( link.offsetHeight, 1 );
 			},
-			getBoundingClientRect() {
-				return link.getBoundingClientRect();
-			},
+			getBoundingClientRect: () => link.getBoundingClientRect(),
 		},
 	};
-
 	state.scrollTopReset = document.documentElement.scrollTop;
 	state.scrollLeftReset = document.documentElement.scrollLeft;
-	state.selectedImageId = id;
+	state.selectedImageId = imageId;
 	state.selectedGalleryId = null;
 	state.overlayEnabled = true;
 	callbacks.setOverlayStyles();
