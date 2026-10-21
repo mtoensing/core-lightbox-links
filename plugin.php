@@ -2,11 +2,12 @@
 /**
  * Plugin Name: Core Lightbox Links
  * Description: Open image-file text links in the native WordPress image lightbox.
- * Version: 0.1.7
+ * Version: 0.1.8
  * Requires at least: 7.0
  * Requires PHP: 7.4
  * Author: Marc Tönsing
  * License: GPL-2.0-or-later
+ * License URI: https://www.gnu.org/licenses/gpl-2.0.html
  * Text Domain: core-lightbox-links
  */
 
@@ -15,20 +16,41 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 add_action( 'wp_enqueue_scripts', function () {
-	wp_enqueue_script( 'core-lightbox-links', plugins_url( 'view.js', __FILE__ ), array(), '0.1.7', true );
 	wp_enqueue_style( 'wp-block-image' );
 	wp_add_inline_style( 'wp-block-image', 'figure.cll-native-trigger[id^="cll-"]{position:fixed!important;top:0;left:0;width:1px!important;height:1px!important;max-width:none!important;max-height:none!important;overflow:hidden!important;opacity:0!important;pointer-events:none!important}figure.cll-native-trigger[id^="cll-"]>img{width:100%!important;height:100%!important;object-fit:cover}' );
 } );
 
 add_filter( 'the_content', function ( $content ) {
-	if ( is_admin() || false === stripos( $content, '<a ' ) ) {
+	if ( is_admin() || is_feed() || false === stripos( $content, '<a ' ) ) {
 		return $content;
 	}
 
+	// Identify anchors containing media before adding text-link triggers.
+	$scan          = new WP_HTML_Tag_Processor( $content );
+	$anchor_index  = -1;
+	$current       = null;
+	$media_anchors = array();
+	while ( $scan->next_tag( array( 'tag_closers' => 'visit' ) ) ) {
+		if ( 'A' === $scan->get_tag() ) {
+			if ( $scan->is_tag_closer() ) {
+				$current = null;
+			} else {
+				$current = ++$anchor_index;
+			}
+		} elseif ( null !== $current && in_array( $scan->get_tag(), array( 'IMG', 'PICTURE' ), true ) ) {
+			$media_anchors[ $current ] = true;
+		}
+	}
+
+	$anchor_index = -1;
 	$processor = new WP_HTML_Tag_Processor( $content );
 	$triggers  = array();
 
 	while ( $processor->next_tag( 'a' ) ) {
+		++$anchor_index;
+		if ( isset( $media_anchors[ $anchor_index ] ) || null !== $processor->get_attribute( 'data-cll-target' ) ) {
+			continue;
+		}
 		$href = $processor->get_attribute( 'href' );
 
 		if ( ! is_string( $href ) || ! preg_match( '/\.(?:jpe?g|png|gif|webp|avif)(?:[?#].*)?$/i', $href ) ||
@@ -54,6 +76,8 @@ add_filter( 'the_content', function ( $content ) {
 	if ( ! $triggers ) {
 		return $content;
 	}
+
+	wp_enqueue_script( 'core-lightbox-links', plugins_url( 'view.js', __FILE__ ), array(), '0.1.8', array( 'in_footer' => true, 'strategy' => 'defer' ) );
 
 	// Render a real Core Gallery Block to let WordPress register navigation,
 	// image ordering, and gallery context for the hidden image triggers.
