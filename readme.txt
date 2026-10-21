@@ -4,7 +4,7 @@ Tags: lightbox, images, links, gutenberg
 Requires at least: 7.0
 Tested up to: 7.0
 Requires PHP: 7.4
-Stable tag: 0.1.4
+Stable tag: 0.1.5
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -38,21 +38,25 @@ It supports direct image URLs as long as the browser can load the image.
 
 == Changelog ==
 
-= 0.1.4 =
+= 0.1.5 =
+* Prevent trigger image sizing from constraining enlarged gallery images.
+
+
+= 0.1.5 =
 * Group image links in each rendered post into a native Core Gallery for built-in next/previous navigation.
 
 
-= 0.1.4 =
+= 0.1.5 =
 * Position the invisible native lightbox trigger over the clicked text link to correct the zoom origin.
 
 
-= 0.1.4 =
+= 0.1.5 =
 * Fix empty native lightbox caused by hidden trigger styles affecting the overlay.
 
 
-= 0.1.4 =
+= 0.1.5 =
 * Fix browser caching of an outdated JavaScript module after switching to a plain script.
 
 
-= 0.1.4 =
+= 0.1.5 =
 * Initial experimental integration with the WordPress Core Image Lightbox.
