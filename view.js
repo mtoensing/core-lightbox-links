@@ -1,13 +1,19 @@
 // Core derives the enlarged container's aspect ratio from imageRef.offsetWidth /
-// offsetHeight. Keep every proxy at its intrinsic size, including gallery items
-// reached through navigation rather than a text-link click.
+// offsetHeight. Match the link width while preserving the image aspect ratio,
+// so Core expands from the link instead of shrinking from the full-size image.
 function sizeTrigger( image ) {
 	if ( ! image.naturalWidth || ! image.naturalHeight ) {
 		return;
 	}
 	const figure = image.closest( 'figure.cll-native-trigger[id]' );
-	figure.style.setProperty( 'width', `${ image.naturalWidth }px`, 'important' );
-	figure.style.setProperty( 'height', `${ image.naturalHeight }px`, 'important' );
+	const link = document.querySelector( `a[data-cll-target="${ figure.id }"]` );
+	const rect = link?.getBoundingClientRect();
+	const width = Math.max( rect?.width || 1, 1 );
+	const height = width * image.naturalHeight / image.naturalWidth;
+	figure.style.setProperty( 'width', `${ width }px`, 'important' );
+	figure.style.setProperty( 'height', `${ height }px`, 'important' );
+	figure.style.setProperty( 'left', `${ rect?.left || 0 }px`, 'important' );
+	figure.style.setProperty( 'top', `${ rect?.top || 0 }px`, 'important' );
 }
 
 document.querySelectorAll( 'figure.cll-native-trigger[id] > img' ).forEach( ( image ) => {
@@ -45,14 +51,6 @@ document.addEventListener( 'click', ( event ) => {
 
 	// Anchor the animation at the link without imposing the link's aspect ratio.
 	sizeTrigger( image );
-	const rect = link.getBoundingClientRect();
-	for ( const [ property, value ] of Object.entries( {
-		position: 'fixed',
-		left: `${ rect.left }px`,
-		top: `${ rect.top }px`,
-	} ) ) {
-		figure.style.setProperty( property, value, 'important' );
-	}
 
 	event.preventDefault();
 	image.click();
