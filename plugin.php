@@ -2,7 +2,7 @@
 /**
  * Plugin Name: Core Lightbox Links
  * Description: Open image-file text links in the native WordPress image lightbox.
- * Version: 0.1.4
+ * Version: 0.1.5
  * Requires at least: 7.0
  * Requires PHP: 7.4
  * Author: Marc Tönsing
@@ -15,9 +15,9 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 add_action( 'wp_enqueue_scripts', function () {
-	wp_enqueue_script( 'core-lightbox-links', plugins_url( 'view.js', __FILE__ ), array(), '0.1.4', true );
+	wp_enqueue_script( 'core-lightbox-links', plugins_url( 'view.js', __FILE__ ), array(), '0.1.5', true );
 	wp_enqueue_style( 'wp-block-image' );
-	wp_add_inline_style( 'wp-block-image', 'figure.cll-native-trigger[id^="cll-"]{position:absolute!important;width:1px!important;height:1px!important;overflow:hidden!important;opacity:0!important;pointer-events:none!important}' );
+	wp_add_inline_style( 'wp-block-image', 'figure.cll-native-trigger[id^="cll-"]{position:absolute!important;width:1px!important;height:1px!important;overflow:hidden!important;opacity:0!important;pointer-events:none!important}figure.cll-native-trigger[id^="cll-"]>img{width:100%!important;height:100%!important;object-fit:cover}' );
 } );
 
 add_filter( 'the_content', function ( $content ) {
@@ -57,7 +57,7 @@ add_filter( 'the_content', function ( $content ) {
 
 	// Render a real Core Gallery Block to let WordPress register navigation,
 	// image ordering, and gallery context for the hidden image triggers.
-	$gallery_markup = '<figure class="wp-block-gallery has-nested-images columns-default is-cropped">';
+	$gallery_markup = '<figure class="wp-block-gallery has-nested-images columns-default">';
 	$inner_content  = array( $gallery_markup );
 	foreach ( $triggers as $trigger ) {
 		$inner_content[] = null;
