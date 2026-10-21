@@ -4,7 +4,7 @@
 **Requires at least:** 6.5  
 **Tested up to:** 6.8  
 **Requires PHP:** 7.4  
-**Stable tag:** 0.1.0  
+**Stable tag:** 0.1.1  
 **License:** GPLv2 or later  
 **License URI:** https://www.gnu.org/licenses/gpl-2.0.html  
 
@@ -38,5 +38,9 @@ It supports direct image URLs as long as the browser can load the image.
 
 ## Changelog ##
 
-### 0.1.0 ###
+### 0.1.1 ###
+* Fix browser caching of an outdated JavaScript module after switching to a plain script.
+
+
+### 0.1.1 ###
 * Initial experimental integration with the WordPress Core Image Lightbox.
