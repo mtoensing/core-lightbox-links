@@ -3,7 +3,7 @@
  * Plugin Name: Core Lightbox Links
  * Description: Open image-file text links in the native WordPress image lightbox.
  * Version: 0.1.4
- * Requires at least: 6.5
+ * Requires at least: 7.0
  * Requires PHP: 7.4
  * Author: Marc Tönsing
  * License: GPL-2.0-or-later
