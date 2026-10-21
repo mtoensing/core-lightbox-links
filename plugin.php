@@ -2,7 +2,7 @@
 /**
  * Plugin Name: Core Lightbox Links
  * Description: Open image-file text links in the native WordPress image lightbox.
- * Version: 0.1.3
+ * Version: 0.1.4
  * Requires at least: 6.5
  * Requires PHP: 7.4
  * Author: Marc Tönsing
@@ -15,7 +15,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 add_action( 'wp_enqueue_scripts', function () {
-	wp_enqueue_script( 'core-lightbox-links', plugins_url( 'view.js', __FILE__ ), array(), '0.1.3', true );
+	wp_enqueue_script( 'core-lightbox-links', plugins_url( 'view.js', __FILE__ ), array(), '0.1.4', true );
 	wp_enqueue_style( 'wp-block-image' );
 	wp_add_inline_style( 'wp-block-image', 'figure.cll-native-trigger[id^="cll-"]{position:absolute!important;width:1px!important;height:1px!important;overflow:hidden!important;opacity:0!important;pointer-events:none!important}' );
 } );
@@ -42,14 +42,12 @@ add_filter( 'the_content', function ( $content ) {
 		$processor->set_attribute( 'data-cll-target', $id );
 
 		$markup = '<figure class="wp-block-image cll-native-trigger" id="' . esc_attr( $id ) . '"><img src="' . esc_url( $href ) . '" alt="" loading="eager"></figure>';
-		$triggers[] = render_block(
-			array(
+		$triggers[] = array(
 				'blockName'    => 'core/image',
 				'attrs'        => array( 'lightbox' => array( 'enabled' => true ) ),
 				'innerBlocks'  => array(),
 				'innerHTML'    => $markup,
 				'innerContent' => array( $markup ),
-			)
 		);
 	}
 
@@ -57,5 +55,24 @@ add_filter( 'the_content', function ( $content ) {
 		return $content;
 	}
 
-	return $processor->get_updated_html() . implode( '', $triggers );
+	// Render a real Core Gallery Block to let WordPress register navigation,
+	// image ordering, and gallery context for the hidden image triggers.
+	$gallery_markup = '<figure class="wp-block-gallery has-nested-images columns-default is-cropped">';
+	$inner_content  = array( $gallery_markup );
+	foreach ( $triggers as $trigger ) {
+		$inner_content[] = null;
+	}
+	$inner_content[] = '</figure>';
+
+	$gallery = render_block(
+		array(
+			'blockName'    => 'core/gallery',
+			'attrs'        => array(),
+			'innerBlocks'  => $triggers,
+			'innerHTML'    => $gallery_markup . '</figure>',
+			'innerContent' => $inner_content,
+		)
+	);
+
+	return $processor->get_updated_html() . $gallery;
 }, 20 );
